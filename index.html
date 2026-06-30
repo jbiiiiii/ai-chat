@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>AI Chat</title>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; img-src 'self' data: https: http://localhost:*;">
 <meta name="application-name" content="AI Chat">
@@ -689,6 +689,371 @@ button:active:not(:disabled) { transform: scale(0.94); }
   .modal-content { width: 100%; max-width: 100%; max-height: 100%; }
   .modal-body { max-height: calc(100dvh - 120px); }
 }
+
+body.mobile-ios {
+  --keyboard-offset: 0px;
+  --mobile-header-height: 76px;
+  --mobile-input-height: 92px;
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-width: 100vw;
+  overflow: hidden;
+  position: fixed;
+  inset: 0;
+  touch-action: manipulation;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.mobile-ios * {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-ios input,
+.mobile-ios textarea,
+.mobile-ios select,
+.mobile-ios .message-content,
+.mobile-ios .modal-body {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.mobile-ios #login-screen {
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+.mobile-ios #app {
+  height: 100dvh;
+  min-height: 100dvh;
+  width: 100vw;
+  max-width: 100vw;
+  overflow: hidden;
+  padding-top: 0;
+  background: var(--bg-primary);
+}
+
+.mobile-ios #chat-area {
+  height: 100dvh;
+  min-height: 100dvh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+}
+
+.mobile-ios .chat-header {
+  height: var(--mobile-header-height);
+  padding: calc(env(safe-area-inset-top) + 12px) 18px 10px;
+  border-bottom: none;
+  background: rgba(26, 26, 26, 0.96);
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 10px;
+  z-index: 25;
+}
+
+.mobile-ios .chat-header > div:first-child {
+  min-width: 0;
+  display: contents !important;
+}
+
+.mobile-ios #sidebar-toggle,
+.mobile-ios #mobile-new-chat-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--text-primary);
+  background: transparent;
+  font-size: 26px;
+}
+
+.mobile-ios #mobile-new-chat-btn {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.mobile-ios .chat-title {
+  text-align: center;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.mobile-ios .chat-model {
+  display: none;
+}
+
+.mobile-ios #messages {
+  height: calc(100dvh - var(--mobile-header-height) - var(--mobile-input-height));
+  flex: none;
+  padding: 12px 0 18px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.mobile-ios .message {
+  padding: 0 16px;
+}
+
+.mobile-ios .message-content {
+  max-width: 92%;
+  border-radius: 18px;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.mobile-ios #start-screen {
+  height: calc(100dvh - var(--mobile-header-height) - var(--mobile-input-height));
+  flex: none;
+  padding: 0 24px;
+  justify-content: center;
+}
+
+.mobile-ios .start-bg::after {
+  opacity: 0.55;
+}
+
+.mobile-ios .start-content {
+  max-width: 100%;
+  transform: translateY(-8vh);
+}
+
+.mobile-ios .start-greeting {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.mobile-ios #input-area {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--keyboard-offset);
+  z-index: 30;
+  padding: 10px 14px calc(12px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(26,26,26,0), var(--bg-primary) 24%);
+  border-top: none;
+  transform: translateZ(0);
+}
+
+.mobile-ios .input-wrapper,
+.mobile-ios .start-input-wrapper {
+  border-radius: 24px;
+  padding: 8px;
+  border-color: rgba(255,255,255,0.12);
+  background: rgba(34,34,34,0.96);
+  box-shadow: 0 12px 36px rgba(0,0,0,0.38);
+}
+
+.mobile-ios #start-screen.visible .start-input-wrapper {
+  display: none;
+}
+
+.mobile-ios #message-input,
+.mobile-ios #start-input {
+  font-size: 16px;
+  line-height: 1.45;
+  max-height: 112px;
+  min-height: 34px;
+  padding: 7px 8px;
+}
+
+.mobile-ios #upload-btn,
+.mobile-ios #send-btn,
+.mobile-ios #stop-btn,
+.mobile-ios #start-upload-btn,
+.mobile-ios #start-send-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+}
+
+.mobile-ios #preview-area,
+.mobile-ios #start-preview-area {
+  max-height: 82px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-ios .preview-item {
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
+}
+
+.mobile-ios .preview-item.preview-file {
+  min-width: 84px;
+  max-width: 128px;
+  height: 60px;
+}
+
+.mobile-ios .preview-del {
+  opacity: 1;
+}
+
+.mobile-ios .file-state {
+  padding: 5px;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.mobile-ios .mobile-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 38;
+  background: rgba(0,0,0,0.52);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.mobile-ios.mobile-sidebar-open .mobile-sidebar-backdrop {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-ios #sidebar {
+  display: flex;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 40;
+  width: min(86vw, 360px);
+  min-width: 0;
+  height: 100dvh;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  border-right: 1px solid rgba(255,255,255,0.08);
+  transform: translateX(-104%);
+  opacity: 1;
+  transition: transform 0.22s ease;
+  box-shadow: 16px 0 44px rgba(0,0,0,0.42);
+}
+
+.mobile-ios.mobile-sidebar-open #sidebar {
+  transform: translateX(0);
+}
+
+.mobile-ios #sidebar.open {
+  inset: auto;
+  width: min(86vw, 360px);
+}
+
+.mobile-ios .mobile-sidebar-close {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  font-size: 20px;
+  margin-left: auto;
+}
+
+.mobile-ios .sidebar-header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+}
+
+.mobile-ios .new-chat-btn {
+  height: 44px;
+  border-radius: 16px;
+}
+
+.mobile-ios .sidebar-convs {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.mobile-ios .conv-item {
+  min-height: 58px;
+  border-radius: 14px;
+}
+
+.mobile-ios .conv-actions button,
+.mobile-ios .msg-action-btn {
+  min-height: 30px;
+}
+
+.mobile-ios .modal-overlay {
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  background: rgba(0,0,0,0.56);
+  overscroll-behavior: none;
+}
+
+.mobile-ios .modal-content {
+  width: 100%;
+  max-width: 100%;
+  max-height: calc(86dvh - var(--keyboard-offset));
+  border-radius: 24px 24px 0 0;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  transform: translateY(0);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.mobile-ios .modal-header {
+  min-height: 66px;
+  padding: 18px 22px 12px;
+}
+
+.mobile-ios .modal-title {
+  font-size: 20px;
+}
+
+.mobile-ios .modal-close {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--bg-hover);
+  font-size: 20px;
+}
+
+.mobile-ios .modal-body {
+  max-height: calc(86dvh - var(--keyboard-offset) - 84px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 0 18px 18px;
+}
+
+.mobile-ios .pill-group {
+  gap: 10px;
+}
+
+.mobile-ios .pill-btn {
+  min-height: 44px;
+  border-radius: 22px;
+  font-size: 14px;
+}
+
+.mobile-ios #prompt-input {
+  min-height: 92px !important;
+  max-height: 180px !important;
+  border-radius: 14px !important;
+  font-size: 16px !important;
+  padding: 12px !important;
+}
+
+.mobile-ios .toast {
+  bottom: calc(18px + env(safe-area-inset-bottom) + var(--keyboard-offset));
+  max-width: calc(100vw - 32px);
+}
 </style>
 </head>
 <body>
@@ -771,6 +1136,7 @@ button:active:not(:disabled) { transform: scale(0.94); }
         <button id="sidebar-toggle" title="切换侧边栏">☰</button>
         <span class="chat-title" id="chat-title">新对话</span>
       </div>
+      <button id="mobile-new-chat-btn" title="新建对话" style="display:none">＋</button>
       <span class="chat-model" id="chat-model">
         <span id="model-name"></span>
         <span class="token-info" id="token-info" style="display:none">
@@ -1123,6 +1489,7 @@ function initChat() {
 // ── Conversations ─────────────────────────────
 
 function newConversation() {
+  closeMobileSidebar();
   const id = genId();
   state.conversations[id] = {
     id, title: '新对话', createdAt: Date.now(), archived: false, messages: [], localPrompts: []
@@ -1137,6 +1504,7 @@ function newConversation() {
 }
 
 function switchConversation(id) {
+  closeMobileSidebar();
   if (state.isStreaming) stopGeneration();
   state.currentConvId = id;
   saveConversations();
@@ -1202,6 +1570,7 @@ function renderSidebar() {
 }
 
 function openModal(type) {
+  closeMobileSidebar();
   const overlay = document.getElementById('modal-overlay');
   const title = document.getElementById('modal-title');
   const body = document.getElementById('modal-body');
@@ -1217,7 +1586,7 @@ function openModal(type) {
     </div>
     <div id="prompts-list"></div>
     <div style="padding:6px 12px">
-      <textarea id="prompt-input" placeholder="输入提示词 (Enter 发送, Shift+Enter 换行)" style="width:100%;padding:6px 8px;border-radius:4px;background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);font-size:12px;resize:vertical;min-height:40px;max-height:120px"></textarea>
+      <textarea id="prompt-input" placeholder="${document.body.classList.contains('mobile-ios') ? '输入提示词' : '输入提示词 (Enter 发送, Shift+Enter 换行)'}" style="width:100%;padding:6px 8px;border-radius:4px;background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);font-size:12px;resize:vertical;min-height:40px;max-height:120px"></textarea>
       <div style="display:flex;gap:4px;margin-top:4px">
         <button id="prompt-add-btn" style="flex:1;padding:4px;border-radius:4px;background:var(--accent);color:#fff;font-size:11px;transition:background 0.2s" onclick="addPrompt()">添加</button>
         <button id="prompt-clear-btn" style="padding:4px 8px;border-radius:4px;background:transparent;color:var(--text-muted);font-size:11px;border:1px solid var(--border);transition:all 0.15s" onclick="clearPrompts()">清空</button>
@@ -1225,7 +1594,7 @@ function openModal(type) {
     </div>`;
     renderPromptsList();
     const input = document.getElementById('prompt-input');
-    if (input) {
+    if (input && !document.body.classList.contains('mobile-ios')) {
       input.onkeydown = function(e) {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addPrompt(); }
       };
@@ -1243,6 +1612,8 @@ function openModal(type) {
 
 function closeModal() {
   document.getElementById('modal-overlay').classList.remove('open');
+  blurActiveInput();
+  resetMobileViewport();
 }
 
 function setPromptScope(scope) {
@@ -1353,6 +1724,7 @@ function renderSidebarProviders() {
 }
 
 function switchSidebarProvider(id) {
+  closeMobileSidebar();
   state.activeProviderId = id;
   saveProviders();
   renderSidebar();
@@ -1643,27 +2015,135 @@ function updateTokenInfo() {
 
 // ── File Upload ───────────────────────────────
 
-function handleFileSelect() {
+async function handleFileSelect() {
   const input = document.getElementById('file-input');
   const files = Array.from(input.files || []);
   if (files.length === 0) return;
+  const maxFiles = document.body.classList.contains('mobile-ios') ? 4 : 10;
   for (const file of files) {
-    if (state.selectedFiles.length >= 10) {
-      showToast('最多同时上传 10 个文件');
+    if (state.selectedFiles.length >= maxFiles) {
+      showToast(`最多同时上传 ${maxFiles} 个文件`);
       break;
     }
-    state.selectedFiles.push({ file, dataUrl: null, loading: true, isImage: file.type.startsWith('image/') });
-    const reader = new FileReader();
-    const idx = state.selectedFiles.length - 1;
-    reader.onload = (e) => {
-      state.selectedFiles[idx].dataUrl = e.target.result;
-      state.selectedFiles[idx].loading = false;
-      renderPreviews();
+    const item = {
+      id: genId(),
+      file,
+      dataUrl: null,
+      loading: true,
+      error: null,
+      isImage: file.type.startsWith('image/'),
+      displayName: file.name || 'image'
     };
-    reader.readAsDataURL(file);
+    state.selectedFiles.push(item);
+    renderPreviews();
+    try {
+      const processed = await processSelectedFile(file);
+      const current = state.selectedFiles.find(entry => entry.id === item.id);
+      if (!current) continue;
+      Object.assign(current, processed, { loading: false, error: null });
+    } catch (err) {
+      const current = state.selectedFiles.find(entry => entry.id === item.id);
+      if (!current) continue;
+      current.loading = false;
+      current.error = err.message || '处理失败';
+      showToast(current.error);
+    }
+    renderPreviews();
   }
   input.value = '';
+  blurActiveInput();
+  resetMobileViewport();
   renderPreviews();
+}
+
+async function processSelectedFile(file) {
+  if (!file.type.startsWith('image/')) {
+    return {
+      file,
+      dataUrl: null,
+      isImage: false,
+      displayName: file.name || 'file'
+    };
+  }
+  if (file.type === 'image/svg+xml') {
+    throw new Error('暂不支持 SVG 图片');
+  }
+  const dataUrl = await compressImageFile(file);
+  return {
+    file,
+    dataUrl,
+    isImage: true,
+    displayName: file.name || 'image'
+  };
+}
+
+async function compressImageFile(file) {
+  const image = await loadImageFromFile(file);
+  const maxEdge = 1600;
+  const scale = Math.min(1, maxEdge / Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height));
+  const width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
+  const height = Math.max(1, Math.round((image.naturalHeight || image.height) * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d', { alpha: false });
+  if (!ctx) throw new Error('图片处理失败');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, width, height);
+  ctx.drawImage(image, 0, 0, width, height);
+  const dataUrl = await canvasToDataUrl(canvas, 'image/jpeg', 0.82);
+  if (dataUrl.length > 4 * 1024 * 1024) {
+    const smaller = document.createElement('canvas');
+    const smallScale = Math.min(1, 1200 / Math.max(width, height));
+    smaller.width = Math.max(1, Math.round(width * smallScale));
+    smaller.height = Math.max(1, Math.round(height * smallScale));
+    const smallCtx = smaller.getContext('2d', { alpha: false });
+    if (!smallCtx) throw new Error('图片处理失败');
+    smallCtx.fillStyle = '#ffffff';
+    smallCtx.fillRect(0, 0, smaller.width, smaller.height);
+    smallCtx.drawImage(canvas, 0, 0, smaller.width, smaller.height);
+    return canvasToDataUrl(smaller, 'image/jpeg', 0.72);
+  }
+  return dataUrl;
+}
+
+function loadImageFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('无法读取这张图片'));
+    };
+    img.src = url;
+  });
+}
+
+function canvasToDataUrl(canvas, mime, quality) {
+  return new Promise((resolve, reject) => {
+    if (!canvas.toBlob) {
+      resolve(canvas.toDataURL(mime, quality));
+      return;
+    }
+    canvas.toBlob(blob => {
+      if (!blob) {
+        reject(new Error('图片压缩失败'));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('图片压缩失败'));
+      reader.readAsDataURL(blob);
+    }, mime, quality);
+  });
+}
+
+function hasPendingFiles() {
+  return state.selectedFiles.some(item => item.loading);
 }
 
 function removeFile(index) {
@@ -1673,7 +2153,7 @@ function removeFile(index) {
 
 function renderPreviews() {
   const startScreen = document.getElementById('start-screen');
-  const isStart = startScreen.classList.contains('visible');
+  const isStart = startScreen.classList.contains('visible') && !document.body.classList.contains('mobile-ios');
   const container = document.getElementById(isStart ? 'start-preview-area' : 'preview-area');
   if (!container) return;
   if (state.selectedFiles.length === 0) {
@@ -1684,7 +2164,13 @@ function renderPreviews() {
   container.classList.add('has-images');
   container.innerHTML = state.selectedFiles.map((item, i) => {
     if (item.loading) {
-      return `<div class="preview-item" style="display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:11px">加载中...</div>`;
+      return `<div class="preview-item file-state" style="display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:11px">处理中...</div>`;
+    }
+    if (item.error) {
+      return `<div class="preview-item file-state" style="display:flex;align-items:center;justify-content:center;color:var(--danger-hover);font-size:10px">
+        失败
+        <button class="preview-del" onclick="removeFile(${i})">✕</button>
+      </div>`;
     }
     if (item.isImage) {
       return `<div class="preview-item">
@@ -1705,8 +2191,9 @@ function buildContentWithFiles(text) {
   const parts = [];
   if (text) parts.push({ type: 'text', text });
   for (const item of state.selectedFiles) {
-    if (!item.dataUrl) continue;
+    if (item.loading || item.error) continue;
     if (item.isImage) {
+      if (!item.dataUrl) continue;
       parts.push({ type: 'image_url', image_url: { url: item.dataUrl } });
     } else {
       parts.push({ type: 'text', text: `[附件: ${item.file.name} (${formatFileSize(item.file.size)})]` });
@@ -1725,15 +2212,26 @@ function formatFileSize(bytes) {
 
 async function sendMessage() {
   if (state.isStreaming) return;
+  if (hasPendingFiles()) {
+    showToast('图片还在处理中，请稍等');
+    return;
+  }
   const input = document.getElementById('message-input');
   const text = input.value.trim();
-  const hasImages = state.selectedFiles.length > 0;
-  if (!text && !hasImages) return;
+  const usableFiles = state.selectedFiles.filter(item => !item.loading && !item.error && (!item.isImage || item.dataUrl));
+  if (!text && usableFiles.length === 0) {
+    if (state.selectedFiles.some(item => item.error)) showToast('请移除处理失败的文件');
+    return;
+  }
   input.value = '';
   input.style.height = 'auto';
   const conv = getConversation();
   if (!conv) return;
   const content = buildContentWithFiles(text);
+  const startScreen = document.getElementById('start-screen');
+  if (startScreen && startScreen.classList.contains('visible')) {
+    hideStartScreen();
+  }
   conv.messages.push({ role: 'user', content });
   state.selectedFiles = [];
   renderPreviews();
@@ -1880,7 +2378,12 @@ async function streamChat(messages) {
     document.getElementById('send-btn').style.display = 'flex';
     document.getElementById('stop-btn').style.display = 'none';
     document.getElementById('message-input').disabled = false;
-    document.getElementById('message-input').focus();
+    if (!document.body.classList.contains('mobile-ios')) {
+      document.getElementById('message-input').focus();
+    } else {
+      blurActiveInput();
+      resetMobileViewport();
+    }
     scrollToBottom();
   }
 }
@@ -1927,10 +2430,22 @@ function showStartScreen() {
   screen.classList.remove('fade-out');
   screen.classList.add('visible');
   messages.style.display = 'none';
-  inputArea.style.display = 'none';
+  inputArea.style.display = document.body.classList.contains('mobile-ios') ? '' : 'none';
   randomGreeting();
   const input = document.getElementById('start-input');
-  if (input) { input.value = ''; input.style.height = 'auto'; input.focus(); }
+  if (input) {
+    input.value = '';
+    input.style.height = 'auto';
+    if (!document.body.classList.contains('mobile-ios')) input.focus();
+  }
+  if (document.body.classList.contains('mobile-ios')) {
+    const messageInput = document.getElementById('message-input');
+    if (messageInput) {
+      messageInput.value = '';
+      messageInput.style.height = 'auto';
+    }
+    updateInputState();
+  }
 }
 
 function hideStartScreen() {
@@ -1942,9 +2457,13 @@ function hideStartScreen() {
 
 function sendFromStart() {
   if (state.isStreaming) return;
+  if (hasPendingFiles()) {
+    showToast('图片还在处理中，请稍等');
+    return;
+  }
   const input = document.getElementById('start-input');
   const text = input.value.trim();
-  if (!text) return;
+  if (!text && state.selectedFiles.length === 0) return;
   const msgInput = document.getElementById('message-input');
   msgInput.value = text;
   msgInput.style.height = 'auto';
@@ -1965,10 +2484,113 @@ function registerServiceWorker() {
   });
 }
 
+function isMobileIOS() {
+  const ua = navigator.userAgent || '';
+  const iPhoneLike = /iPhone|iPod/i.test(ua);
+  const touchMacPhoneSize = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1 && Math.min(window.innerWidth, window.innerHeight) < 768;
+  return iPhoneLike || touchMacPhoneSize;
+}
+
+function blurActiveInput() {
+  const el = document.activeElement;
+  if (el && ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName)) {
+    el.blur();
+  }
+}
+
+function resetMobileViewport() {
+  if (!document.body.classList.contains('mobile-ios')) return;
+  requestAnimationFrame(() => {
+    const vv = window.visualViewport;
+    const keyboard = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+    document.body.style.setProperty('--keyboard-offset', `${Math.round(keyboard)}px`);
+  });
+}
+
+function closeMobileSidebar() {
+  if (!document.body.classList.contains('mobile-ios')) return;
+  document.body.classList.remove('mobile-sidebar-open');
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) sidebar.classList.remove('open');
+}
+
+function openMobileSidebar() {
+  if (!document.body.classList.contains('mobile-ios')) return;
+  blurActiveInput();
+  resetMobileViewport();
+  document.body.classList.add('mobile-sidebar-open');
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) sidebar.classList.add('open');
+}
+
+function setupMobileGestures() {
+  const stopGesture = e => e.preventDefault();
+  document.addEventListener('gesturestart', stopGesture, { passive: false });
+  document.addEventListener('gesturechange', stopGesture, { passive: false });
+  document.addEventListener('gestureend', stopGesture, { passive: false });
+  document.addEventListener('touchmove', e => {
+    if (!document.body.classList.contains('mobile-ios')) return;
+    const target = e.target instanceof Element ? e.target : e.target?.parentElement;
+    const scrollable = target?.closest('#messages, .sidebar-convs, .modal-body, #preview-area, #start-preview-area, textarea');
+    if (!scrollable) e.preventDefault();
+  }, { passive: false });
+}
+
+function setupMobileKeyboard() {
+  if (!window.visualViewport) return;
+  const update = () => {
+    const vv = window.visualViewport;
+    const keyboard = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    document.body.style.setProperty('--keyboard-offset', `${Math.round(keyboard)}px`);
+  };
+  window.visualViewport.addEventListener('resize', update);
+  window.visualViewport.addEventListener('scroll', update);
+  window.addEventListener('orientationchange', () => setTimeout(update, 250));
+  update();
+}
+
+function setupMobileShell() {
+  if (!isMobileIOS()) return;
+  document.body.classList.add('mobile-ios');
+  document.documentElement.style.overflow = 'hidden';
+
+  if (!document.querySelector('.mobile-sidebar-backdrop')) {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'mobile-sidebar-backdrop';
+    backdrop.addEventListener('click', closeMobileSidebar);
+    document.body.appendChild(backdrop);
+  }
+
+  const sidebarHeader = document.querySelector('#sidebar .sidebar-header');
+  if (sidebarHeader && !document.getElementById('mobile-sidebar-close')) {
+    const closeBtn = document.createElement('button');
+    closeBtn.id = 'mobile-sidebar-close';
+    closeBtn.className = 'mobile-sidebar-close';
+    closeBtn.type = 'button';
+    closeBtn.textContent = '×';
+    closeBtn.setAttribute('aria-label', '关闭侧边栏');
+    closeBtn.addEventListener('click', closeMobileSidebar);
+    sidebarHeader.appendChild(closeBtn);
+  }
+
+  const newChatBtn = document.getElementById('mobile-new-chat-btn');
+  if (newChatBtn) {
+    newChatBtn.addEventListener('click', () => {
+      blurActiveInput();
+      newConversation();
+    });
+  }
+
+  setupMobileKeyboard();
+  setupMobileGestures();
+  resetMobileViewport();
+}
+
 // ── Events ────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
   registerServiceWorker();
+  setupMobileShell();
   loadState();
 
   if (getActiveProvider()) {
@@ -2061,7 +2683,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Sidebar toggle
   document.getElementById('sidebar-toggle').addEventListener('click', () => {
     const sidebar = document.getElementById('sidebar');
-    if (window.innerWidth <= 768) {
+    if (document.body.classList.contains('mobile-ios')) {
+      if (document.body.classList.contains('mobile-sidebar-open')) closeMobileSidebar();
+      else openMobileSidebar();
+    } else if (window.innerWidth <= 768) {
       sidebar.classList.toggle('open');
     } else {
       sidebar.classList.toggle('hidden');
