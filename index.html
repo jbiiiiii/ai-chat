@@ -83,12 +83,18 @@ button:active:not(:disabled) { transform: scale(0.94); }
 .login-card .login-subtitle { color: var(--text-secondary); text-align: center; margin-bottom: 20px; font-size: 14px; }
 .form-group { margin-bottom: 14px; }
 .form-group label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 5px; font-weight: 500; }
-.form-group input, .form-group select {
+.form-group input, .form-group select, .form-group textarea {
   width: 100%; padding: 10px 14px; border-radius: var(--radius);
   background: var(--bg-primary); border: 1px solid var(--border);
   color: var(--text-primary); font-size: 14px; transition: border-color 0.2s;
 }
-.form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+.form-group textarea { min-height: 92px; resize: vertical; line-height: 1.45; font-family: inherit; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+.web-search-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.web-search-row label { margin-bottom: 0; }
+.web-search-toggle { display: flex; align-items: center; gap: 8px; color: var(--text-primary); font-size: 13px; cursor: pointer; }
+.web-search-toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
+.web-search-help { margin-top: 6px; color: var(--text-muted); font-size: 12px; line-height: 1.45; }
 
 /* Provider cards */
 .provider-section { margin-bottom: 20px; }
@@ -692,8 +698,8 @@ button:active:not(:disabled) { transform: scale(0.94); }
 
 body.mobile-ios {
   --keyboard-offset: 0px;
-  --mobile-header-height: 76px;
-  --mobile-input-height: 92px;
+  --mobile-header-height: 78px;
+  --mobile-input-height: 82px;
   width: 100%;
   height: 100dvh;
   min-height: 100dvh;
@@ -746,13 +752,14 @@ body.mobile-ios {
 .mobile-ios .chat-header {
   height: var(--mobile-header-height);
   padding: calc(env(safe-area-inset-top) + 12px) 18px 10px;
-  border-bottom: none;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
   background: rgba(26, 26, 26, 0.96);
   display: grid;
   grid-template-columns: 44px minmax(0, 1fr) 44px;
   align-items: center;
   gap: 10px;
   z-index: 25;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
 }
 
 .mobile-ios .chat-header > div:first-child {
@@ -791,7 +798,7 @@ body.mobile-ios {
 .mobile-ios #messages {
   height: calc(100dvh - var(--mobile-header-height) - var(--mobile-input-height));
   flex: none;
-  padding: 12px 0 18px;
+  padding: 18px 0 12px;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -837,8 +844,8 @@ body.mobile-ios {
   right: 0;
   bottom: var(--keyboard-offset);
   z-index: 30;
-  padding: 10px 14px calc(12px + env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, rgba(26,26,26,0), var(--bg-primary) 24%);
+  padding: 8px 14px max(6px, env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(26,26,26,0), var(--bg-primary) 18%);
   border-top: none;
   transform: translateZ(0);
 }
@@ -846,7 +853,7 @@ body.mobile-ios {
 .mobile-ios .input-wrapper,
 .mobile-ios .start-input-wrapper {
   border-radius: 24px;
-  padding: 8px;
+  padding: 7px;
   border-color: rgba(255,255,255,0.12);
   background: rgba(34,34,34,0.96);
   box-shadow: 0 12px 36px rgba(0,0,0,0.38);
@@ -861,8 +868,8 @@ body.mobile-ios {
   font-size: 16px;
   line-height: 1.45;
   max-height: 112px;
-  min-height: 34px;
-  padding: 7px 8px;
+  min-height: 32px;
+  padding: 6px 8px;
 }
 
 .mobile-ios #upload-btn,
@@ -975,7 +982,10 @@ body.mobile-ios {
   display: flex;
   gap: 10px;
   align-items: center;
-  padding: 12px 14px;
+  padding: 12px 14px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.14);
+  z-index: 1;
 }
 
 .mobile-ios .new-chat-btn {
@@ -987,6 +997,7 @@ body.mobile-ios {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  padding-top: 12px;
 }
 
 .mobile-ios .conv-item {
@@ -1116,6 +1127,17 @@ body.mobile-ios {
       </div>
       <div class="model-dropdown" id="model-dropdown"></div>
       <div class="detect-status" id="detect-status"></div>
+    </div>
+    <div class="form-group">
+      <div class="web-search-row">
+        <label>联网查询</label>
+        <label class="web-search-toggle">
+          <input type="checkbox" id="input-web-enabled">
+          开启
+        </label>
+      </div>
+      <textarea id="input-web-params" placeholder='服务商原生参数 JSON，例如：{"enable_search": true}' spellcheck="false"></textarea>
+      <div class="web-search-help">默认关闭。只有当中转站文档明确要求某个联网参数时再开启并填写。</div>
     </div>
     <button class="btn-primary" id="login-btn">连接</button>
     <div class="error-msg" id="login-error"></div>
@@ -1254,10 +1276,11 @@ function loadState() {
     } else if (oldCreds) {
       const c = JSON.parse(oldCreds);
       const id = 'prov_' + Date.now();
-      state.providers[id] = { id, name: c.name || '默认', baseUrl: c.baseUrl, apiKey: c.apiKey, model: c.model };
+      state.providers[id] = { id, name: c.name || '默认', baseUrl: c.baseUrl, apiKey: c.apiKey, model: c.model, webSearchEnabled: false, webSearchParams: '' };
       localStorage.removeItem('ai_chat_credentials');
       saveProviders();
     }
+    Object.values(state.providers).forEach(normalizeProviderShape);
 
     if (activeId && state.providers[activeId]) {
       state.activeProviderId = activeId;
@@ -1307,6 +1330,32 @@ function getActiveProvider() {
   return state.activeProviderId ? state.providers[state.activeProviderId] : null;
 }
 
+function normalizeProviderShape(p) {
+  if (!p) return;
+  p.webSearchEnabled = p.webSearchEnabled === true;
+  p.webSearchParams = typeof p.webSearchParams === 'string' ? p.webSearchParams : '';
+}
+
+function setProviderForm(p) {
+  document.getElementById('input-provider-name').value = p?.name || '';
+  document.getElementById('input-base-url').value = p?.baseUrl || '';
+  document.getElementById('input-api-key').value = p?.apiKey || '';
+  document.getElementById('input-model').value = p?.model || '';
+  const webEnabled = document.getElementById('input-web-enabled');
+  const webParams = document.getElementById('input-web-params');
+  if (webEnabled) webEnabled.checked = p?.webSearchEnabled === true;
+  if (webParams) webParams.value = p?.webSearchParams || '';
+  updateWebSearchFormState();
+}
+
+function updateWebSearchFormState() {
+  const webEnabled = document.getElementById('input-web-enabled');
+  const webParams = document.getElementById('input-web-params');
+  if (!webEnabled || !webParams) return;
+  webParams.disabled = !webEnabled.checked;
+  webParams.style.opacity = webEnabled.checked ? '1' : '0.55';
+}
+
 function escHtml(str) {
   const d = document.createElement('div');
   d.textContent = str;
@@ -1352,10 +1401,11 @@ function renderProviders() {
   section.style.display = 'block';
   let html = '';
   for (const p of list) {
+    normalizeProviderShape(p);
     const active = p.id === state.activeProviderId ? 'active' : '';
     html += `<div class="provider-card ${active}" onclick="selectProvider('${p.id}')" title="${escHtml(p.baseUrl)}">
       <span class="pc-name">${escHtml(p.name)}</span>
-      <span class="pc-model">${escHtml(p.model || '')}</span>
+      <span class="pc-model">${escHtml(p.model || '')}${p.webSearchEnabled ? ' · 联网' : ''}</span>
       <span class="pc-del" onclick="event.stopPropagation();deleteProvider('${p.id}')">✕</span>
     </div>`;
   }
@@ -1369,12 +1419,10 @@ function renderProviders() {
 function selectProvider(id) {
   const p = state.providers[id];
   if (!p) return;
+  normalizeProviderShape(p);
   state.activeProviderId = id;
   renderProviders();
-  document.getElementById('input-provider-name').value = p.name || '';
-  document.getElementById('input-base-url').value = p.baseUrl || '';
-  document.getElementById('input-api-key').value = p.apiKey || '';
-  document.getElementById('input-model').value = p.model || '';
+  setProviderForm(p);
   saveProviders();
   doLogin();
 }
@@ -1386,10 +1434,7 @@ function deleteProvider(id) {
   if (keys.length > 0) {
     state.activeProviderId = keys[0];
     const p = state.providers[keys[0]];
-    document.getElementById('input-provider-name').value = p.name || '';
-    document.getElementById('input-base-url').value = p.baseUrl || '';
-    document.getElementById('input-api-key').value = p.apiKey || '';
-    document.getElementById('input-model').value = p.model || '';
+    setProviderForm(p);
   } else {
     state.activeProviderId = null;
     clearForm();
@@ -1401,10 +1446,7 @@ function deleteProvider(id) {
 function clearForm() {
   state.activeProviderId = null;
   saveProviders();
-  document.getElementById('input-provider-name').value = '';
-  document.getElementById('input-base-url').value = '';
-  document.getElementById('input-api-key').value = '';
-  document.getElementById('input-model').value = '';
+  setProviderForm(null);
   document.getElementById('login-error').style.display = 'none';
   document.getElementById('model-dropdown').innerHTML = '';
   document.getElementById('model-dropdown').classList.remove('open');
@@ -1417,9 +1459,21 @@ function doLogin() {
   const baseUrl = document.getElementById('input-base-url').value.trim();
   const apiKey = document.getElementById('input-api-key').value.trim();
   const model = document.getElementById('input-model').value.trim() || 'gpt-4o-mini';
+  const webSearchEnabled = document.getElementById('input-web-enabled')?.checked === true;
+  const webSearchParams = document.getElementById('input-web-params')?.value.trim() || '';
   const errorEl = document.getElementById('login-error');
   if (!baseUrl) { errorEl.textContent = '请输入 Base URL'; errorEl.style.display = 'block'; return; }
   if (!apiKey) { errorEl.textContent = '请输入 API Key'; errorEl.style.display = 'block'; return; }
+  if (webSearchEnabled && webSearchParams) {
+    try {
+      const parsed = JSON.parse(webSearchParams);
+      if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object') throw new Error('联网参数必须是 JSON 对象');
+    } catch (err) {
+      errorEl.textContent = '联网参数 JSON 格式不对: ' + err.message;
+      errorEl.style.display = 'block';
+      return;
+    }
+  }
   errorEl.style.display = 'none';
   const normUrl = normalizeBaseUrl(baseUrl);
   // Find existing or create new
@@ -1430,9 +1484,11 @@ function doLogin() {
     p.baseUrl = normUrl;
     p.apiKey = apiKey;
     p.model = model;
+    p.webSearchEnabled = webSearchEnabled;
+    p.webSearchParams = webSearchParams;
   } else {
     id = genProvId();
-    state.providers[id] = { id, name, baseUrl: normUrl, apiKey, model };
+    state.providers[id] = { id, name, baseUrl: normUrl, apiKey, model, webSearchEnabled, webSearchParams };
   }
   state.activeProviderId = id;
   saveProviders();
@@ -1582,11 +1638,69 @@ function toggleArchive(id, e) {
 function getConvTitle(messages) {
   for (const m of messages) {
     if (m.role === 'user') {
-      const text = typeof m.content === 'string' ? m.content : '';
-      return text.length > 50 ? text.slice(0, 50) + '...' : text || '新对话';
+      const text = extractMessageText(m.content);
+      if (text) return trimTitle(text);
+      if (hasImageContent(m.content)) return '图片识别';
+      return '新对话';
     }
   }
   return '新对话';
+}
+
+function extractMessageText(content) {
+  if (typeof content === 'string') return content.trim();
+  if (!Array.isArray(content)) return '';
+  return content
+    .filter(part => part && part.type === 'text' && typeof part.text === 'string')
+    .map(part => part.text.trim())
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+}
+
+function hasImageContent(content) {
+  return Array.isArray(content) && content.some(part => part && part.type === 'image_url');
+}
+
+function trimTitle(text, max = 50) {
+  const cleaned = String(text || '')
+    .replace(/\s+/g, ' ')
+    .replace(/^["“”'‘’\s]+|["“”'‘’\s]+$/g, '')
+    .trim();
+  if (!cleaned) return '新对话';
+  return cleaned.length > max ? cleaned.slice(0, max) + '...' : cleaned;
+}
+
+function shouldRefineTitle(title) {
+  const generic = ['新对话', '图片识别', '图片分析', '这是什么', '这是什么？', '这个呢', '这个呢？', '看看图片', '识别图片'];
+  return !title || generic.includes(title);
+}
+
+function inferTitleFromAssistant(content) {
+  const text = String(content || '').replace(/\s+/g, ' ').trim();
+  if (!text) return '';
+  const lower = text.toLowerCase();
+  const rules = [
+    { title: '狗狗图片识别', keys: ['狗', '狗狗', '犬', 'puppy', 'dog', '金毛', '柯基', '拉布拉多', '边牧', '泰迪'] },
+    { title: '猫咪图片识别', keys: ['猫', '猫咪', 'kitten', 'cat', '英短', '布偶'] },
+    { title: '植物图片识别', keys: ['植物', '花', '叶', '树', '盆栽', 'plant', 'flower'] },
+    { title: '食物图片识别', keys: ['食物', '菜', '水果', '甜点', '餐', 'food'] },
+    { title: '文档图片识别', keys: ['文字', '文档', '截图', '表格', 'document', 'screenshot'] },
+    { title: '人物图片识别', keys: ['人物', '人像', '照片中这位', 'person', 'portrait'] },
+  ];
+  for (const rule of rules) {
+    if (rule.keys.some(key => lower.includes(String(key).toLowerCase()))) return rule.title;
+  }
+  const firstSentence = text.split(/[。！？.!?]/).find(Boolean) || text;
+  return trimTitle(firstSentence.replace(/^(这张图片|图片中|画面中|我看到|看起来像是|这是)/, ''), 14) || '图片识别';
+}
+
+function refineConversationTitleFromAssistant(conv, assistantContent) {
+  if (!conv || !shouldRefineTitle(conv.title)) return false;
+  const title = inferTitleFromAssistant(assistantContent);
+  if (!title || title === conv.title) return false;
+  conv.title = title;
+  return true;
 }
 
 function getConversation() {
@@ -1741,10 +1855,11 @@ function renderSidebarProviders() {
     return;
   }
   container.innerHTML = list.map(p => {
+    normalizeProviderShape(p);
     const active = p.id === state.activeProviderId ? 'active' : '';
     return `<div class="provider-card ${active}" onclick="switchSidebarProvider('${p.id}')" title="${escHtml(p.baseUrl)}">
       <span class="pc-name">${escHtml(p.name)}</span>
-      <span class="pc-model">${escHtml(p.model || '')}</span>
+      <span class="pc-model">${escHtml(p.model || '')}${p.webSearchEnabled ? ' · 联网' : ''}</span>
     </div>`;
   }).join('');
   container.innerHTML += `<div class="provider-add-card" onclick="showLogin()">
@@ -2301,6 +2416,63 @@ async function sendMessage() {
   await streamChat(conv.messages);
 }
 
+function applyProviderNativeParams(body, provider) {
+  normalizeProviderShape(provider);
+  if (!provider.webSearchEnabled || !provider.webSearchParams.trim()) return;
+  let extra;
+  try {
+    extra = JSON.parse(provider.webSearchParams);
+  } catch (err) {
+    throw new Error('联网参数 JSON 格式不对: ' + err.message);
+  }
+  if (!extra || Array.isArray(extra) || typeof extra !== 'object') {
+    throw new Error('联网参数必须是 JSON 对象');
+  }
+  const protectedKeys = new Set(['model', 'messages', 'stream']);
+  for (const [key, value] of Object.entries(extra)) {
+    if (!protectedKeys.has(key)) body[key] = value;
+  }
+}
+
+function contentToPlainText(content) {
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    return content.map(part => {
+      if (typeof part === 'string') return part;
+      if (part?.type === 'text') return part.text || '';
+      if (part?.text) return part.text;
+      return '';
+    }).join('');
+  }
+  return content == null ? '' : String(content);
+}
+
+function extractFinalAssistantContent(data) {
+  const choice = data?.choices?.[0];
+  const content = choice?.message?.content ?? choice?.text ?? data?.message?.content ?? data?.content ?? data?.output_text;
+  return contentToPlainText(content);
+}
+
+function extractStreamPiece(data, currentContent) {
+  const choice = data?.choices?.[0] || {};
+  const raw = choice.delta?.content ?? choice.message?.content ?? choice.content ?? choice.text ?? data?.delta?.content ?? data?.content;
+  const text = contentToPlainText(raw);
+  if (!text) return { text: '', replace: false };
+  if (currentContent && text.startsWith(currentContent)) return { text, replace: true };
+  return { text, replace: false };
+}
+
+function processSsePayload(dataText, currentContent) {
+  const data = dataText.trim();
+  if (!data || data === '[DONE]') return { text: '', replace: false, usage: null, done: data === '[DONE]' };
+  try {
+    const parsed = JSON.parse(data);
+    return { ...extractStreamPiece(parsed, currentContent), usage: parsed.usage || null, done: false };
+  } catch {
+    return { text: '', replace: false, usage: null, done: false };
+  }
+}
+
 async function streamChat(messages) {
   const p = getActiveProvider();
   if (!p) return;
@@ -2341,6 +2513,7 @@ async function streamChat(messages) {
       messages: finalMessages,
       stream: true,
     };
+    applyProviderNativeParams(body, p);
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -2356,37 +2529,77 @@ async function streamChat(messages) {
       try { const j = JSON.parse(errText); errMsg = j.error?.message || errMsg; } catch {}
       throw new Error(errMsg);
     }
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
     let assistantContent = '';
     let usage = null;
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop();
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6).trim();
-          if (data === '[DONE]') continue;
-          try {
-            const parsed = JSON.parse(data);
-            const delta = parsed.choices?.[0]?.delta?.content || '';
-            if (delta) {
-              assistantContent += delta;
-              updateStreamContent(assistantContent);
-            }
-            if (parsed.usage) {
-              usage = parsed.usage;
-            }
-            // Some APIs put usage in choices[0] with no delta
-            if (!delta && parsed.usage) {
-              usage = parsed.usage;
-            }
-          } catch {}
+    const contentType = response.headers.get('content-type') || '';
+    if (!response.body || contentType.includes('application/json')) {
+      const data = await response.json();
+      assistantContent = extractFinalAssistantContent(data);
+      usage = data.usage || null;
+      if (assistantContent) updateStreamContent(assistantContent);
+    } else {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let rawBody = '';
+      const handlePayload = dataText => {
+        const result = processSsePayload(dataText, assistantContent);
+        if (result.usage) usage = result.usage;
+        if (!result.text) return;
+        assistantContent = result.replace ? result.text : assistantContent + result.text;
+        updateStreamContent(assistantContent);
+      };
+      const handleLine = line => {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith(':')) return;
+        if (trimmed.startsWith('data:')) handlePayload(trimmed.slice(5));
+      };
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        rawBody += chunk;
+        buffer += chunk.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const eventBlocks = buffer.split('\n\n');
+        buffer = eventBlocks.pop();
+        for (const block of eventBlocks) {
+          const dataLines = block.split('\n')
+            .map(line => line.trim())
+            .filter(line => line.startsWith('data:'))
+            .map(line => line.slice(5).trim());
+          if (dataLines.length > 0) {
+            if (dataLines.length === 1) handlePayload(dataLines[0]);
+            else dataLines.forEach(handlePayload);
+          } else {
+            block.split('\n').forEach(handleLine);
+          }
         }
+        if (buffer && buffer.includes('\n') && !buffer.includes('\n\n')) {
+          const lines = buffer.split('\n');
+          buffer = lines.pop();
+          lines.forEach(handleLine);
+        }
+      }
+      const tail = buffer.trim();
+      if (tail) {
+        if (tail.includes('\n')) {
+          const dataLines = tail.split('\n')
+            .map(line => line.trim())
+            .filter(line => line.startsWith('data:'))
+            .map(line => line.slice(5).trim());
+          if (dataLines.length === 1) handlePayload(dataLines[0]);
+          else dataLines.forEach(handlePayload);
+        } else {
+          handleLine(tail);
+        }
+      }
+      if (!assistantContent) {
+        try {
+          const data = JSON.parse(rawBody);
+          assistantContent = extractFinalAssistantContent(data);
+          usage = data.usage || usage;
+          if (assistantContent) updateStreamContent(assistantContent);
+        } catch {}
       }
     }
     if (assistantContent) {
@@ -2395,6 +2608,7 @@ async function streamChat(messages) {
         const msg = { role: 'assistant', content: assistantContent };
         if (usage) msg.usage = usage;
         streamConv.messages.push(msg);
+        refineConversationTitleFromAssistant(streamConv, assistantContent);
         saveConversations();
         updateChatHeader();
       }
@@ -2655,10 +2869,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (getActiveProvider()) {
     const p = getActiveProvider();
-    document.getElementById('input-provider-name').value = p.name || '';
-    document.getElementById('input-base-url').value = p.baseUrl || '';
-    document.getElementById('input-api-key').value = p.apiKey || '';
-    document.getElementById('input-model').value = p.model || '';
+    setProviderForm(p);
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
     if (!document.body.classList.contains('mobile-ios')) {
@@ -2673,6 +2884,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Login
   document.getElementById('login-btn').addEventListener('click', doLogin);
   document.getElementById('detect-btn').addEventListener('click', detectModels);
+  const webEnabled = document.getElementById('input-web-enabled');
+  if (webEnabled) webEnabled.addEventListener('change', updateWebSearchFormState);
   document.querySelectorAll('.login-card input').forEach(el => {
     el.addEventListener('keydown', e => {
       if (e.key === 'Enter' && document.activeElement !== document.getElementById('input-model')) doLogin();
