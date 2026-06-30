@@ -2098,7 +2098,7 @@ async function processSelectedFile(file) {
   if (file.type === 'image/svg+xml') {
     throw new Error('暂不支持 SVG 图片');
   }
-  const dataUrl = await compressImageFile(file);
+  const dataUrl = await prepareImageDataUrl(file);
   return {
     file,
     dataUrl,
@@ -2107,8 +2107,33 @@ async function processSelectedFile(file) {
   };
 }
 
-async function compressImageFile(file) {
-  const image = await loadImageFromFile(file);
+async function prepareImageDataUrl(file) {
+  const original = await readFileAsDataUrl(file);
+  if (!document.body.classList.contains('mobile-ios') && file.size <= 4 * 1024 * 1024) {
+    return original;
+  }
+  if (document.body.classList.contains('mobile-ios') && file.size <= 2.5 * 1024 * 1024) {
+    return original;
+  }
+  try {
+    return await compressImageFile(file, original);
+  } catch (err) {
+    if (original.length <= 5 * 1024 * 1024) return original;
+    throw new Error('图片太大，请换一张较小的图片');
+  }
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('无法读取这张图片'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function compressImageFile(file, fallbackDataUrl) {
+  const image = await loadImageFromFile(file, fallbackDataUrl);
   const maxEdge = 1600;
   const scale = Math.min(1, maxEdge / Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height));
   const width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
@@ -2137,16 +2162,16 @@ async function compressImageFile(file) {
   return dataUrl;
 }
 
-function loadImageFromFile(file) {
+function loadImageFromFile(file, fallbackDataUrl) {
   return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
+    const url = fallbackDataUrl || URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
-      URL.revokeObjectURL(url);
+      if (!fallbackDataUrl) URL.revokeObjectURL(url);
       resolve(img);
     };
     img.onerror = () => {
-      URL.revokeObjectURL(url);
+      if (!fallbackDataUrl) URL.revokeObjectURL(url);
       reject(new Error('无法读取这张图片'));
     };
     img.src = url;
