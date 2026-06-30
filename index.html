@@ -940,8 +940,18 @@ body.mobile-ios {
   box-shadow: 16px 0 44px rgba(0,0,0,0.42);
 }
 
+.mobile-ios #sidebar.slide-in-left {
+  animation: none !important;
+}
+
+.mobile-ios:not(.mobile-sidebar-open) #sidebar {
+  transform: translateX(-104%) !important;
+  pointer-events: none;
+}
+
 .mobile-ios.mobile-sidebar-open #sidebar {
-  transform: translateX(0);
+  transform: translateX(0) !important;
+  pointer-events: auto;
 }
 
 .mobile-ios #sidebar.open {
@@ -957,6 +967,8 @@ body.mobile-ios {
   color: var(--text-primary);
   font-size: 20px;
   margin-left: auto;
+  flex-shrink: 0;
+  z-index: 2;
 }
 
 .mobile-ios .sidebar-header {
@@ -1048,6 +1060,22 @@ body.mobile-ios {
   border-radius: 14px !important;
   font-size: 16px !important;
   padding: 12px !important;
+}
+
+.mobile-ios .model-dropdown {
+  max-height: min(42dvh, 320px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  border-radius: 14px;
+}
+
+.mobile-ios .model-dropdown-item {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
 }
 
 .mobile-ios .toast {
@@ -1309,7 +1337,9 @@ function hideLogin(callback) {
     // Trigger reflow
     void app.offsetWidth;
     app.classList.add('fade-in');
-    document.getElementById('sidebar').classList.add('slide-in-left');
+    if (!document.body.classList.contains('mobile-ios')) {
+      document.getElementById('sidebar').classList.add('slide-in-left');
+    }
     if (callback) callback();
   }, 250);
 }
@@ -2531,7 +2561,7 @@ function setupMobileGestures() {
   document.addEventListener('touchmove', e => {
     if (!document.body.classList.contains('mobile-ios')) return;
     const target = e.target instanceof Element ? e.target : e.target?.parentElement;
-    const scrollable = target?.closest('#messages, .sidebar-convs, .modal-body, #preview-area, #start-preview-area, textarea');
+    const scrollable = target?.closest('#messages, .sidebar-convs, .modal-body, #preview-area, #start-preview-area, #model-dropdown, textarea');
     if (!scrollable) e.preventDefault();
   }, { passive: false });
 }
@@ -2569,7 +2599,11 @@ function setupMobileShell() {
     closeBtn.type = 'button';
     closeBtn.textContent = '×';
     closeBtn.setAttribute('aria-label', '关闭侧边栏');
-    closeBtn.addEventListener('click', closeMobileSidebar);
+    closeBtn.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeMobileSidebar();
+    });
     sidebarHeader.appendChild(closeBtn);
   }
 
@@ -2584,6 +2618,7 @@ function setupMobileShell() {
   setupMobileKeyboard();
   setupMobileGestures();
   resetMobileViewport();
+  closeMobileSidebar();
 }
 
 // ── Events ────────────────────────────────────
@@ -2601,7 +2636,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('input-model').value = p.model || '';
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
-    document.getElementById('sidebar').classList.add('slide-in-left');
+    if (!document.body.classList.contains('mobile-ios')) {
+      document.getElementById('sidebar').classList.add('slide-in-left');
+    }
     state.currentConvId = null;
     initChat();
   } else {
